@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Insert title here</title>
+    <link rel="stylesheet" type="text/css" href="/css/custom.css"/>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/js/javascrpt.js"></script>
+    <script>
+$(document).ready(function(){
+	$("#btn2").click(function(){
+		alert("Button 2 clicked");
+	});
+});
+</script>
+</head>
+<body>
+<div class="container">
+    <input type="button" id="btn1" class="button" onclick="myFunction()" value="Button1"/>
+    <input type="button" id="btn2" value="Button2"/>
+</div>
+
+</body>
+</html>
