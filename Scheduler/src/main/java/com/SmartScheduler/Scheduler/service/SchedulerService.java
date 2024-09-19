@@ -23,14 +23,19 @@ public class SchedulerService {
             currentPlan = new CoursePlan();
             currentPlan.setUid(courseNodes.getUid());
         }
+        currentPlan.getPlannedCourseList().clear(); //patch
         for(buffNode b: courseNodes.getBuffNodeList()){
             currentPlan.getPlannedCourseList().add(new CoursePlan.PlannedCourse(
                     b.getCid(), b.getCourseName(), b.getSemesterNeeded()
             ));
         }
+        currentPlan.setSemesters(courseNodes.getSemesters());
         coursePlanRepository.save(currentPlan);
     }
     public List<CoursePlan.PlannedCourse> getCoursePlan(Integer uid){
         return coursePlanRepository.findById(uid).get().getPlannedCourseList();
+    }
+    public Integer getSemesters(Integer uid){
+        return coursePlanRepository.findById(uid).get().getSemesters();
     }
 }

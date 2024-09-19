@@ -11,4 +11,5 @@ import java.util.List;
 public class buffRequest {
     private List<buffNode> buffNodeList = new ArrayList<>();
     private Integer uid;
+    private Integer semesters;
 }

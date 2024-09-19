@@ -7,7 +7,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.jmx.ParentAwareNamingStrategy;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -20,25 +19,23 @@ import static java.lang.Math.sqrt;
 public class OptimizerService {
     private final WebClient.Builder webClientBuilder;
     private final SchedulerService schedulerService;
-    public void getOptimalSchedule(Integer uid) throws JsonProcessingException {
+    private boolean courseDistanceFlag = true; // can add weighting of how much each course follows the next course
+    //how much of a prereq it is, so that [ 61A-| 61B-| CS70-| CS170-| 61C-| ] doesn't happen
+    public List<List<String>> getOptimalSchedule(Integer uid) throws JsonProcessingException {
+        // Load in User Schedule Draft Data
+        System.out.println("Loading User Data");
         List<CoursePlan.PlannedCourse> schedule = schedulerService.getCoursePlan(uid);
         List<String> courses = new ArrayList<>();
         Map<String, Integer> userRequirements = new HashMap(); // fix coursename to id
         for(CoursePlan.PlannedCourse plannedCourse : schedule){
             courses.add(plannedCourse.getCname());
-            if(plannedCourse.getSemester() != null) {
-                System.out.print("REQUIRED: ");
-                System.out.print(plannedCourse.getCname());
-                System.out.print(" by ");
-                System.out.println(plannedCourse.getSemester());
+            if(plannedCourse.getSemester() != null){ //WEIRD NULL, should be -1
                 userRequirements.put(plannedCourse.getCname(), plannedCourse.getSemester());
             }
         }
-        if(courses == null){
-            System.out.println("weird");
-            return;
-        }
-        // Call Inventory Service
+
+        // Get Class Prerequisites for Schedule
+        System.out.println("fetching Prereqs");
         String jsonBuffer = webClientBuilder.build().get()
                 .uri("http://localhost:65106/api/courses",
                         uriBuilder -> uriBuilder.queryParam("targetCourses", courses).build())
@@ -47,39 +44,26 @@ public class OptimizerService {
                 .block();
         ObjectMapper objectMapper = new ObjectMapper();
         List<List<PreRequisites>> inventoryResponseArray = objectMapper.readValue(jsonBuffer, new TypeReference<List<List<PreRequisites>>>(){});
-        System.out.println("GotJson");
+
+        //Prepare Caches for backtracking
+        System.out.println("BackTracking prep");
         List<List<CourseNodes>> optimalSchedules = new ArrayList<>();
-        int indexCacheSize = 0; //longest possibal interval of prereqs
-        int sumCacheSize = 8; //# of seemsters  TO:DO HARD CODED RIGHT NOW, CHANGE LATER
-        for(List<PreRequisites> chain: inventoryResponseArray) {
-            indexCacheSize = Math.max(indexCacheSize, chain.size());
+        int largestPreReq = 0; // cache size to look at parent indexes
+        for(List<PreRequisites> lst : inventoryResponseArray){
+            largestPreReq = Math.max(largestPreReq, lst.size());
         }
 
-        for(List<PreRequisites> lst : inventoryResponseArray){
-            for(PreRequisites preq : lst){
-                System.out.println(preq);
-            }
-        }
-
-        List<List<Integer>> indexCache = new ArrayList<>();
-        int jx = 0;
-        for(List<PreRequisites> lst : inventoryResponseArray){
-            indexCache.add(new ArrayList<>());
-            for(int i = 0; i < lst.size(); i++){
-                indexCache.get(jx).add(0);
-            }
-            jx += 1;
-        }
         int[] lowest = {Integer.MAX_VALUE};
+        System.out.println("BackTrack start");
         backtrack(optimalSchedules, inventoryResponseArray, new Stack<>(),
-                indexCache, new int[sumCacheSize], 0, lowest, 0, 0, new HashMap<>(), userRequirements);
-        System.out.println(optimalSchedules.size());
+                new int[largestPreReq], new int[schedulerService.getSemesters(uid)], 0, lowest, 0, 0, new HashMap<>(), userRequirements);
 
-
+        //temporary, maybe store in redis
+        System.out.println("Printing results");
         List<List<String>> buffer = new ArrayList<>();
         for(List<CourseNodes> opt : optimalSchedules){
             buffer = new ArrayList<>();
-            for(int i = 0; i < sumCacheSize; i++) {
+            for(int i = 0; i < schedulerService.getSemesters(uid); i++) {
                 buffer.add(new ArrayList<>());
             }
             for(CourseNodes node : opt) {
@@ -96,9 +80,26 @@ public class OptimizerService {
             System.out.println("]");
         }
         System.out.println("hereend");
+        return buffer;
     }
+
+    /**
+     * Backtrack Courses
+     * Assumes integeres in condition are 1-indexed
+     * @param returnValue
+     * @param layers
+     * @param branchCache
+     * @param indexCache
+     * @param sumCache
+     * @param totalSum
+     * @param lowestSum
+     * @param interval
+     * @param intervalI
+     * @param seen
+     * @param userRequirements
+     */
     private void backtrack(List<List<CourseNodes>> returnValue, List<List<PreRequisites>> layers, Stack<CourseNodes> branchCache,
-                           List<List<Integer>> indexCache, int[] sumCache, int totalSum, int[] lowestSum, int interval, int intervalI, Map<String, Integer> seen
+                           int[] indexCache, int[] sumCache, int totalSum, int[] lowestSum, int interval, int intervalI, Map<String, Integer> seen
                             , Map<String, Integer> userRequirements){
         //indexCache size, sumCache size = #of semesters
 
@@ -110,24 +111,18 @@ public class OptimizerService {
         if (interval >= layers.size() || (interval >= layers.size() - 1 && intervalI >= layers.get(interval).size())){
             System.out.println("end of a branch");
             for(CourseNodes n: branchCache){
-                System.out.print(n.getCourseName());
-                System.out.print(" ");
-                System.out.print(n.getSemesterIndex());
+                System.out.print(n.getCourseName() + " " + n.getSemesterIndex());
                 System.out.println("");
             }
             System.out.print("Total SUM:");
             System.out.println(totalSum);
-            System.out.println("------------------");
-            for(int s : sumCache){
-                System.out.println(s);
-            }
             if(totalSum < lowestSum[0]){
-                System.out.println("cleared rv");
+                System.out.println("cleared return cache");
                 returnValue.clear();
                 lowestSum[0] = totalSum;
             }
             if(totalSum == lowestSum[0]){
-                System.out.println("added??????????????????");
+                System.out.println("added new optimal solution");
                 System.out.println(lowestSum[0]);
                 List<CourseNodes> whack = new ArrayList<>();
                 for(CourseNodes cn : branchCache) {
@@ -141,93 +136,53 @@ public class OptimizerService {
             }
             return;
         }
-        System.out.println("not end of branch");
-        //End of a prerequisite Interval/chain
+        //End of a prerequisite Interval/chain - move onto NEXT, end of array will not reach here because above condition
+        //catches it
+        System.out.println("Update Interval");
         if (intervalI >= layers.get(interval).size()) {
             interval++;
             intervalI = 0;
         }
+
+        // IndexCache Debug
         PreRequisites p = layers.get(interval).get(intervalI);
         System.out.println("ParentIndex: ");
         System.out.println(p.getParentIndex());
         System.out.println(p.getCourseName());
         System.out.print("[");
-        for(int i = 0; i < indexCache.get(interval).size(); i++){
-            System.out.print(indexCache.get(interval).get(i));
+        for(int i = 0; i < indexCache.length; i++){
+            System.out.print(indexCache[i]);
             System.out.print(", ");
         }
         System.out.println("]");
-        int boundary = p.getParentIndex() == -1 ? sumCache.length : indexCache.get(interval).get(p.getParentIndex());
-        //no space
-        System.out.println(boundary);
-        if(boundary == 0){
-            return;
+
+        // search space for current node in course interval
+        // 1-indexed because of users?
+        System.out.println("Setting bounds");
+        int searchLeftBound = 1;
+        int searchRightBound = p.getParentIndex() == -1 ? sumCache.length : indexCache[p.getParentIndex()];
+        //no space - bad branch
+        System.out.println(searchRightBound);
+        if(searchRightBound == 0){
+            return; // prune
         }
 
-        System.out.println(p.getParentIndex());
         CourseNodes currentPlacement = new CourseNodes();
         //Pinned course
+        System.out.println("Checking Pinned Course");
         if(userRequirements.get(p.getCourseName()) != null){
             int i = userRequirements.get(p.getCourseName());
             System.out.print("Requiring: ");
             System.out.print(p.getCourseName());
             System.out.print(":    ");
             System.out.println(i);
-            seen.put(p.getCourseName(), i);
-            //store for next interation
-            int sumCacheBuffer = sumCache[i];
-            int totalSumBuffer = totalSum;
-
-            totalSum -= sumCache[i];
-//            System.out.println(p.getDifficulty());
-//            System.out.println(sumCache[i]);
-            sumCache[i] = (int)Math.pow(sqrt(sumCache[i]) + p.getDifficulty(), 2); // always integer - sqrt always whole
-            totalSum += sumCache[i];
-            System.out.print("p difficulty: ");
-            System.out.println(p.getDifficulty());
-            System.out.print("netsum: ");
-            System.out.println(totalSum);
-            if(Arrays.stream(sumCache).sum() != totalSum){
-                System.out.println("whwowoowwoowowowo");
-            }
-            System.out.print("sumCache length: ");
-            System.out.println(sumCache.length);
-            System.out.println("SumCache:");
-            System.out.print("[ ");
-            for(int j  = 0; j < sumCache.length; j++) {
-                System.out.print(sumCache[j]);
-                System.out.print(", ");
-            }
-            System.out.println("]");
-
-            currentPlacement.setCourseName(p.getCourseName());
-            currentPlacement.setDifficulty(p.getDifficulty());
-            currentPlacement.setSemesterIndex(i);
-            branchCache.push(currentPlacement);
-            indexCache.get(interval).set(intervalI, i) ; // no need to refresh index cache between intervals, prev ones will alaways be in range by def
-            System.out.print(i);
-            System.out.print(p.getCourseName());
-            System.out.print("cacheindex for got updated to: ");
-            System.out.print(indexCache.get(interval).get(intervalI));
-            System.out.print(" for ");
-            System.out.println(intervalI);
-            backtrack(returnValue, layers, branchCache, indexCache, sumCache, totalSum, lowestSum, interval, intervalI + 1, seen, userRequirements);
-            seen.remove(p.getCourseName());
-            branchCache.pop();
-
-            //put back invaraints
-            sumCache[i] = sumCacheBuffer;
-//            System.out.print("Cache Buffer: ");
-//            System.out.println(sumCacheBuffer);
-            totalSum = totalSumBuffer;
-            return;
+            searchLeftBound = userRequirements.get(p.getCourseName());
+            searchRightBound = searchLeftBound + 1;
         }
         //PreRequisite already fufilled (sharing pre-req paths along tree)
+        System.out.println("Checking if already seen prereq");
         if(seen.get(p.getCourseName()) != null){
-            System.out.println("newWORKS");
-            System.out.println("SEENCHILD: ");
-            System.out.println(p.getCourseName());
-            if(seen.get(p.getCourseName()) > indexCache.get(interval).get(p.getParentIndex())) { //TO:DO PATCH
+            if(seen.get(p.getCourseName()) > indexCache[p.getParentIndex()]) { //TO:DO PATCH
                 System.out.println("weird");
                 return;
             }
@@ -237,9 +192,12 @@ public class OptimizerService {
         }
         System.out.print("Explore: ");
         System.out.print(p.getCourseName());
-        System.out.print(", ");
-        System.out.println(boundary);
-        for(int i = boundary - 1; i >= 0; i--){
+        System.out.print(" from: ");
+        System.out.print(searchLeftBound);
+        System.out.println(" to ");
+        System.out.println(searchRightBound);
+        // Place Course node
+        for(int i = searchRightBound - 1; i >= searchLeftBound - 1; i--){
             System.out.print("Choosing: ");
             System.out.print(p.getCourseName());
             System.out.print(":    ");
@@ -254,13 +212,19 @@ public class OptimizerService {
 //            System.out.println(sumCache[i]);
             sumCache[i] = (int)Math.pow(sqrt(sumCache[i]) + p.getDifficulty(), 2); // always integer - sqrt always whole
             totalSum += sumCache[i];
+            int courseDistance = 0;
+            if(courseDistanceFlag) {
+                if (p.getParentIndex() != -1) {
+                    courseDistance = indexCache[p.getParentIndex()] - i;
+                    totalSum += courseDistance;
+                } else {
+                    System.out.print("jlsdjfkjs");
+                }
+            }
             System.out.print("p difficulty: ");
             System.out.println(p.getDifficulty());
             System.out.print("netsum: ");
             System.out.println(totalSum);
-            if(Arrays.stream(sumCache).sum() != totalSum){
-                System.out.println("whwowoowwoowowowo");
-            }
             System.out.print("sumCache length: ");
             System.out.println(sumCache.length);
             System.out.println("SumCache:");
@@ -275,18 +239,23 @@ public class OptimizerService {
             currentPlacement.setDifficulty(p.getDifficulty());
             currentPlacement.setSemesterIndex(i);
             branchCache.push(currentPlacement);
-            indexCache.get(interval).set(intervalI, i) ; // no need to refresh index cache between intervals, prev ones will alaways be in range by def
+            int indexCacheValue = indexCache[intervalI];
+            indexCache[intervalI] = i; // no need to refresh index cache between intervals, prev ones will alaways be in range by def
             System.out.print(i);
             System.out.print(p.getCourseName());
             System.out.print("cacheindex for got updated to: ");
-            System.out.print(indexCache.get(interval).get(intervalI));
+            System.out.print(indexCache[intervalI]);
             System.out.print(" for ");
             System.out.println(intervalI);
             backtrack(returnValue, layers, branchCache, indexCache, sumCache, totalSum, lowestSum, interval, intervalI + 1, seen, userRequirements);
             seen.remove(p.getCourseName());
             branchCache.pop();
 
+            if(courseDistanceFlag)
+                totalSum -= courseDistance;
+
             //put back invaraints
+            indexCache[intervalI] = indexCacheValue;
             sumCache[i] = sumCacheBuffer;
 //            System.out.print("Cache Buffer: ");
 //            System.out.println(sumCacheBuffer);

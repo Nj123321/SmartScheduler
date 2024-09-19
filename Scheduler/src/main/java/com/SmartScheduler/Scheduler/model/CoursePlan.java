@@ -16,6 +16,7 @@ public class CoursePlan {
     @Id
     private Integer uid;
     private List<PlannedCourse> plannedCourseList = new ArrayList<>();
+    private Integer semesters;
     @Getter
     public static class PlannedCourse{
         Integer cid;
