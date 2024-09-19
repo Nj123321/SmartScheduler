@@ -34,6 +34,7 @@ public class InventoryController {
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     public String getPreqs(@RequestParam List<String> targetCourses) throws JsonProcessingException {
+        System.out.println("calll made it through");
         ObjectMapper objectMapper = new ObjectMapper();
         List<List<PreRequisites>> testing = catalogService.getPreReqs(targetCourses);
         return objectMapper.writeValueAsString(testing);

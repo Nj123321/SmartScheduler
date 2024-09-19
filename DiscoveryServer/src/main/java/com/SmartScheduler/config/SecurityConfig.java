@@ -28,8 +28,6 @@ public class SecurityConfig {
 
     @Bean
     public InMemoryUserDetailsManager userDetailsService() {
-        System.out.println("password");
-        System.out.println(username);
         UserDetails user = User.builder()
                 .username(username)
                 .password(passwordEncoder().encode(password))
@@ -40,7 +38,6 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        System.out.println("hello");
         http.csrf().disable()
                 .authorizeHttpRequests((authz) -> authz
                         .anyRequest().authenticated()
