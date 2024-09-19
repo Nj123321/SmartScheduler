@@ -13,6 +13,9 @@ import java.util.*;
 
 import static java.lang.Math.sqrt;
 
+/**
+ * Service for OptimizerController endpoint, implements scheudle backtracking algorithim
+ */
 @Service
 @RequiredArgsConstructor
 public class OptimizerService {
@@ -20,6 +23,13 @@ public class OptimizerService {
     private final SchedulerService schedulerService;
     private boolean courseDistanceFlag = true; // can add weighting of how much each course follows the next course
     //how much of a prereq it is, so that [ 61A-| 61B-| CS70-| CS170-| 61C-| ] doesn't happen
+
+    /**
+     * Gets the optimal Schedule for the given user's schedule draft
+     * @param uid user-id
+     * @return an optimal schedule if there exists one
+     * @throws JsonProcessingException
+     */
     public List<List<String>> getOptimalSchedule(Integer uid) throws JsonProcessingException {
         // Load in User Schedule Draft Data
         System.out.println("Loading User Data");
@@ -83,19 +93,19 @@ public class OptimizerService {
     }
 
     /**
-     * Backtrack Courses
+     * Backtrack helper function for getOptimalSchedule
      * Assumes integeres in condition are 1-indexed
-     * @param returnValue
-     * @param layers
-     * @param branchCache
-     * @param indexCache
-     * @param sumCache
-     * @param totalSum
-     * @param lowestSum
-     * @param interval
-     * @param intervalI
-     * @param seen
-     * @param userRequirements
+     * @param returnValue List of semesters, each semester can contain multiple courses
+     * @param layers Prerequisites
+     * @param branchCache backtracking/recursion stack
+     * @param indexCache cache for semesters of parents
+     * @param sumCache cache of individual semester sum
+     * @param totalSum evaluation function: sum(sumCache) + length of each "course" interval - for course proximity
+     * @param lowestSum minimize totalSum - lowest totalSum
+     * @param interval index for which prerequisite "chain" we are currently exploring
+     * @param intervalI index for which course-node along the chain we are exploring
+     * @param seen map to cache already seen prerequisites along the search path (diff courses can share same prereq) - order of which course "takes" it first shouldn't matter
+     * @param userRequirements user pinning courses
      */
     private void backtrack(List<List<CourseNodes>> returnValue, List<List<PreRequisites>> layers, Stack<CourseNodes> branchCache,
                            int[] indexCache, int[] sumCache, int totalSum, int[] lowestSum, int interval, int intervalI, Map<String, Integer> seen

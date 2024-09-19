@@ -25,22 +25,24 @@ public class InventoryController {
 
     private final CatalogService catalogService;
 
+    /**
+     * Gets PreRequisites for each Course requested
+     * @param targetCourses list of courses to search prerequisites for
+     * @return List of PreRequisites
+     * @throws JsonProcessingException
+     */
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     public String getPreqs(@RequestParam List<String> targetCourses) throws JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper();
         List<List<PreRequisites>> testing = catalogService.getPreReqs(targetCourses);
-        for(List<PreRequisites> lst : testing){
-            for(int i = 0; i < lst.size(); i++){
-                System.out.print(lst.get(i).getCourseName());
-                System.out.print(lst.get(i).getParentIndex());
-                System.out.print("    ");
-            }
-            System.out.println("");
-        }
         return objectMapper.writeValueAsString(testing);
     }
 
+    /**
+     * Adds/Updates course to database
+     * @param courseListRequest List of courses to add
+     */
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public void addCourse(@RequestBody CourseListRequest courseListRequest){

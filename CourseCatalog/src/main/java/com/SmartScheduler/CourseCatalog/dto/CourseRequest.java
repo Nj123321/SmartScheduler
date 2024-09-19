@@ -8,6 +8,9 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+/**
+ * DTO to recieve new Courses to add to catalog
+ */
 @Data
 @Builder
 @AllArgsConstructor

@@ -14,15 +14,24 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ScheduleController {
     private final SchedulerService scheduleService;
+
+    /**
+     * Gets planned courses with associated draft schedule
+     * @param uid userid
+     * @return
+     */
     @GetMapping
     public List<ScheduleDraft.PlannedCourse> getSchedule(@RequestParam Integer uid){
         return scheduleService.getCoursePlan(uid);
     }
+
+    /**
+     * Updates Schedule draft with courses
+     * @param buffRequest userdefined courses and semester/uid if applicable
+     */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public void addClass(@RequestBody ScheduleRequest buffRequest){
-        System.out.println("hellooooo");
-        System.out.println(buffRequest.getUid());
         scheduleService.addCourse(buffRequest);
     }
 }

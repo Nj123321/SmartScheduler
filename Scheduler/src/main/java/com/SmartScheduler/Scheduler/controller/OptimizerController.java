@@ -13,6 +13,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OptimizerController {
     private final OptimizerService scheduleService;
+
+    /**
+     * Gets Optimized schedule
+     * @param uid userID
+     * @return optimized schedule names
+     * @throws JsonProcessingException
+     */
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public List<List<String>> getSchedule(@RequestParam Integer uid) throws JsonProcessingException {

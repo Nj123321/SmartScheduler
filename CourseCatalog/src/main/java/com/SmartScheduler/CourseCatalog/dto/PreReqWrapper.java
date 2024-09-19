@@ -2,8 +2,9 @@ package com.SmartScheduler.CourseCatalog.dto;
 
 import lombok.*;
 
-import java.util.List;
-
+/**
+ * Wrapper for PreRequisites DTO
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

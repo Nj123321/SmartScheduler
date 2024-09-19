@@ -12,14 +12,18 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+//TODO allow multiple drafts to be added
 public class SchedulerService {
     private final CoursePlanRepository coursePlanRepository;
+
+    /**
+     * Adds/updates schedule draft with userdata
+     * @param courseNodes user schedule data along with new/updated courses for schedule
+     */
     public void addCourse(ScheduleRequest courseNodes){
-        System.out.println(courseNodes.getUid());
-        System.out.println("hereweird");
+        //TODO update functionality instead of overwriting
         Optional<ScheduleDraft> buffer = coursePlanRepository.findById(courseNodes.getUid());
         ScheduleDraft currentPlan;
-        System.out.println("here");
         if(buffer.isPresent()){
             currentPlan = buffer.get();
         }else{
@@ -27,7 +31,6 @@ public class SchedulerService {
             currentPlan.setUid(courseNodes.getUid());
         }
         currentPlan.getPlannedCourseList().clear(); //patch
-        System.out.println("Adding Courses");
         for(ScheduleCourseRequirement b: courseNodes.getScheduleCourseRequirements()){
             System.out.println(b.getSemesterRequirement());
                 currentPlan.getPlannedCourseList().add(new ScheduleDraft.PlannedCourse(
@@ -37,10 +40,24 @@ public class SchedulerService {
         currentPlan.setSemesters(courseNodes.getSemesters());
         coursePlanRepository.save(currentPlan);
     }
+
+    /**
+     * Gets Schedule for User
+     * @param uid userid
+     * @return planned Courses
+     */
     public List<ScheduleDraft.PlannedCourse> getCoursePlan(Integer uid){
+        //TODO add custom exceptions for missing data
         return coursePlanRepository.findById(uid).get().getPlannedCourseList();
     }
+
+    /**
+     * Gets number semesters for the User's draft schedule
+     * @param uid userid
+     * @return
+     */
     public Integer getSemesters(Integer uid){
+        //TODO add custom exceptions for missing data
         return coursePlanRepository.findById(uid).get().getSemesters();
     }
 }

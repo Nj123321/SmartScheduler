@@ -2,6 +2,9 @@ package com.SmartScheduler.Scheduler.service;
 
 import lombok.*;
 
+/***
+ * Currently Used to parse data
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

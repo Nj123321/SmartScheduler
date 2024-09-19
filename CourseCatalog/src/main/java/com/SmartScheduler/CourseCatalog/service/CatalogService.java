@@ -19,6 +19,11 @@ public class CatalogService {
 
     private final CourseRepository courseRepository;
 
+    /**
+     * Gets all PreRequisites for targeted courses
+     * @param courses courses to get prerequisites
+     * @return prerequisites of courses sorted in DFS in-order traversal
+     */
     @Transactional(readOnly = true)
     public List<List<PreRequisites>> getPreReqs(List<String> courses) {
         List<List<PreRequisites>> rv = new ArrayList<>();
@@ -29,6 +34,12 @@ public class CatalogService {
         return rv;
     }
 
+    /**
+     * Gets Prereqs for course
+     * @param rootName course to get PreRequisites
+     * @param parentDepth starting value
+     * @return prerequisites of rootName with startingValue, and incremented in in-order DFS traversal
+     */
     private List<PreRequisites> getCoursePreReqs(String rootName, int parentDepth){
         Stack<String> stack = new Stack<String>();
         Stack<Integer> intStack = new Stack<Integer>();
@@ -61,6 +72,10 @@ public class CatalogService {
         return rv;
     }
 
+    /**
+     * Adds/Updates course to database
+     * @param courseListRequest List of courses to add
+     */
     public void addCourse(CourseListRequest courseListRequest) {
         Course buffer;
         for(CourseRequest courseRequest : courseListRequest.getCourseRequestList()){
