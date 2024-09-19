@@ -12,5 +12,9 @@ import lombok.NoArgsConstructor;
 public class buffNode {
     private Integer cid;
     private String courseName;
-    private Integer semesterNeeded;
+    private Integer semesterRequirement = -1;
+    public buffNode(Integer cid, String cName){
+        this.cid = cid;
+        this.courseName = cName;
+    }
 }

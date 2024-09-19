@@ -29,8 +29,8 @@ public class OptimizerService {
         Map<String, Integer> userRequirements = new HashMap(); // fix coursename to id
         for(CoursePlan.PlannedCourse plannedCourse : schedule){
             courses.add(plannedCourse.getCname());
-            if(plannedCourse.getSemester() != null){ //WEIRD NULL, should be -1
-                userRequirements.put(plannedCourse.getCname(), plannedCourse.getSemester());
+            if(plannedCourse.getSemesterRequirement() != -1){
+                userRequirements.put(plannedCourse.getCname(), plannedCourse.getSemesterRequirement());
             }
         }
 
@@ -177,7 +177,7 @@ public class OptimizerService {
             System.out.print(":    ");
             System.out.println(i);
             searchLeftBound = userRequirements.get(p.getCourseName());
-            searchRightBound = searchLeftBound + 1;
+            searchRightBound = searchLeftBound;
         }
         //PreRequisite already fufilled (sharing pre-req paths along tree)
         System.out.println("Checking if already seen prereq");
@@ -218,7 +218,7 @@ public class OptimizerService {
                     courseDistance = indexCache[p.getParentIndex()] - i;
                     totalSum += courseDistance;
                 } else {
-                    System.out.print("jlsdjfkjs");
+                    System.out.print("jlsdjfkjs"); //TODO
                 }
             }
             System.out.print("p difficulty: ");
@@ -257,8 +257,6 @@ public class OptimizerService {
             //put back invaraints
             indexCache[intervalI] = indexCacheValue;
             sumCache[i] = sumCacheBuffer;
-//            System.out.print("Cache Buffer: ");
-//            System.out.println(sumCacheBuffer);
             totalSum = totalSumBuffer;
         }
     }

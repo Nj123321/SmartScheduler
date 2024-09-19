@@ -15,8 +15,11 @@ import java.util.Optional;
 public class SchedulerService {
     private final CoursePlanRepository coursePlanRepository;
     public void addCourse(buffRequest courseNodes){
+        System.out.println(courseNodes.getUid());
+        System.out.println("hereweird");
         Optional<CoursePlan> buffer = coursePlanRepository.findById(courseNodes.getUid());
         CoursePlan currentPlan;
+        System.out.println("here");
         if(buffer.isPresent()){
             currentPlan = buffer.get();
         }else{
@@ -24,10 +27,12 @@ public class SchedulerService {
             currentPlan.setUid(courseNodes.getUid());
         }
         currentPlan.getPlannedCourseList().clear(); //patch
+        System.out.println("Adding Courses");
         for(buffNode b: courseNodes.getBuffNodeList()){
-            currentPlan.getPlannedCourseList().add(new CoursePlan.PlannedCourse(
-                    b.getCid(), b.getCourseName(), b.getSemesterNeeded()
-            ));
+            System.out.println(b.getSemesterRequirement());
+                currentPlan.getPlannedCourseList().add(new CoursePlan.PlannedCourse(
+                        b.getCid(), b.getCourseName(), b.getSemesterRequirement()
+                ));
         }
         currentPlan.setSemesters(courseNodes.getSemesters());
         coursePlanRepository.save(currentPlan);

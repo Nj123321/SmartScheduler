@@ -21,11 +21,11 @@ public class CoursePlan {
     public static class PlannedCourse{
         Integer cid;
         String cname;
-        Integer semester = -1;
-        public PlannedCourse(Integer cid, String cname, Integer semester){
+        Integer semesterRequirement = -1;
+        public PlannedCourse(Integer cid, String cname, Integer semesterRequirement){
             this.cid = cid;
             this.cname = cname;
-            this.semester = semester;
+            this.semesterRequirement = semesterRequirement;
         }
     }
 }
