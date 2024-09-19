@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/optimize")
+@RequestMapping("/scheduler/optimizer")
 @RequiredArgsConstructor
 public class OptimizerController {
     private final OptimizerService scheduleService;

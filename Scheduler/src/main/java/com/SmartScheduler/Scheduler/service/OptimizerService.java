@@ -34,10 +34,10 @@ public class OptimizerService {
         // Load in User Schedule Draft Data
         System.out.println("Loading User Data");
         List<ScheduleDraft.PlannedCourse> schedule = schedulerService.getCoursePlan(uid);
-        List<String> courses = new ArrayList<>();
+        List<Integer> draftScheduleListCourseID = new ArrayList<>();
         Map<String, Integer> userRequirements = new HashMap(); // fix coursename to id
         for(ScheduleDraft.PlannedCourse plannedCourse : schedule){
-            courses.add(plannedCourse.getCname());
+            draftScheduleListCourseID.add(plannedCourse.getCid());
             if(plannedCourse.getSemesterRequirement() != -1){
                 userRequirements.put(plannedCourse.getCname(), plannedCourse.getSemesterRequirement());
             }
@@ -46,8 +46,8 @@ public class OptimizerService {
         // Get Class Prerequisites for Schedule
         System.out.println("fetching Prereqs");
         String jsonBuffer = webClientBuilder.build().get()
-                .uri("http://localhost:65106/api/courses",
-                        uriBuilder -> uriBuilder.queryParam("targetCourses", courses).build())
+                .uri("http://localhost:65106/courses", //TODO discovery client
+                        uriBuilder -> uriBuilder.queryParam("listOfCourseIDs", draftScheduleListCourseID).build())
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();

@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Stack;
 
 @Service
@@ -21,14 +22,15 @@ public class CatalogService {
 
     /**
      * Gets all PreRequisites for targeted courses
-     * @param courses courses to get prerequisites
+     * @param listOfCourseIDs list of courses to get prerequisite
      * @return prerequisites of courses sorted in DFS in-order traversal
+     * @throws CourseNotFoundException
      */
     @Transactional(readOnly = true)
-    public List<List<PreRequisites>> getPreReqs(List<String> courses) {
+    public List<List<PreRequisites>> getPreReqs(List<Integer> listOfCourseIDs) throws CourseNotFoundException {
         List<List<PreRequisites>> rv = new ArrayList<>();
-        for(String cname: courses){
-            rv.add(getCoursePreReqs(cname, -1));
+        for(Integer cid: listOfCourseIDs){
+            rv.add(getCoursePreReqs(cid, -1));
             System.out.println("added");
         }
         return rv;
@@ -36,37 +38,40 @@ public class CatalogService {
 
     /**
      * Gets Prereqs for course
-     * @param rootName course to get PreRequisites
+     * @param cID course
      * @param parentDepth starting value
      * @return prerequisites of rootName with startingValue, and incremented in in-order DFS traversal
+     * @throws CourseNotFoundException
      */
-    private List<PreRequisites> getCoursePreReqs(String rootName, int parentDepth){
-        Stack<String> stack = new Stack<String>();
+    private List<PreRequisites> getCoursePreReqs(Integer cID, int parentDepth) throws CourseNotFoundException{
+        Stack<Course> stack = new Stack<Course>();
         Stack<Integer> intStack = new Stack<Integer>();
         List<PreRequisites> rv = new ArrayList<>();
-        stack.push(rootName);
-        intStack.push(-1);
         int preOrderIndex = 0;
+        Course courseIterator;
+
+        //intialize
+        Optional<Course> targetCourse =  courseRepository.findById(cID);
+        if(!targetCourse.isPresent()){
+            throw new CourseNotFoundException(cID);
+        }
+        stack.push(targetCourse.get());
+        intStack.push(-1);
+
         while(!stack.isEmpty()){
-            Course c = courseRepository.findByCourseName(stack.pop());
-            System.out.println(c.getCourseName());
+            courseIterator = stack.pop();
             int parent = intStack.pop();
-            List<String> buffer = c.getPreReqs();
-            if(buffer != null && buffer.size() != 0 ){
-                for(String s: buffer){
-                    stack.push(s);
-                    intStack.push(preOrderIndex);
-                }
+            for(Course neighbors: courseIterator.getNeighbors()){
+                stack.push(neighbors);
+                intStack.push(preOrderIndex);
             }
-            System.out.print("skadfklsdjflkasjdfklsjdflk: ");
-            System.out.print(c.getCourseName());
-            System.out.print(parent);
-            System.out.println("");
+            // build dto
             rv.add(PreRequisites.builder()
-                    .courseName(c.getCourseName())
-                    .difficulty(c.getDifficulty())
+                    .courseName(courseIterator.getCourseName())
+                    .difficulty(courseIterator.getDifficulty())
                     .parentIndex(parent)
                     .build());
+            //update
             preOrderIndex += 1;
         }
         return rv;

@@ -5,6 +5,7 @@ import com.SmartScheduler.CourseCatalog.dto.CourseRequest;
 import com.SmartScheduler.CourseCatalog.dto.PreReqWrapper;
 import com.SmartScheduler.CourseCatalog.dto.PreRequisites;
 import com.SmartScheduler.CourseCatalog.service.CatalogService;
+import com.SmartScheduler.CourseCatalog.service.CourseNotFoundException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/courses")
+@RequestMapping("/courses")
 @RequiredArgsConstructor
 public class InventoryController {
 
@@ -27,16 +28,16 @@ public class InventoryController {
 
     /**
      * Gets PreRequisites for each Course requested
-     * @param targetCourses list of courses to search prerequisites for
+     * @param listOfCourseIDs list of courses to search prerequisites for
      * @return List of PreRequisites
      * @throws JsonProcessingException
+     * @throws CourseNotFoundException
      */
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public String getPreqs(@RequestParam List<String> targetCourses) throws JsonProcessingException {
-        System.out.println("calll made it through");
+    public String getPreqs(@RequestParam List<Integer> listOfCourseIDs) throws JsonProcessingException, CourseNotFoundException {
         ObjectMapper objectMapper = new ObjectMapper();
-        List<List<PreRequisites>> testing = catalogService.getPreReqs(targetCourses);
+        List<List<PreRequisites>> testing = catalogService.getPreReqs(listOfCourseIDs);
         return objectMapper.writeValueAsString(testing);
     }
 
