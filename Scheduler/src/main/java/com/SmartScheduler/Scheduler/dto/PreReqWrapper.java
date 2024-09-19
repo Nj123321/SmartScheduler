@@ -7,6 +7,9 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+/**
+ * Wraps a list of PreRequisites DTOs
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

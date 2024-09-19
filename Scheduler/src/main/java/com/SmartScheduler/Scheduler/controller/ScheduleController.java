@@ -1,7 +1,7 @@
 package com.SmartScheduler.Scheduler.controller;
 
-import com.SmartScheduler.Scheduler.dto.buffRequest;
-import com.SmartScheduler.Scheduler.model.CoursePlan;
+import com.SmartScheduler.Scheduler.dto.ScheduleRequest;
+import com.SmartScheduler.Scheduler.model.ScheduleDraft;
 import com.SmartScheduler.Scheduler.service.SchedulerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -15,12 +15,12 @@ import java.util.List;
 public class ScheduleController {
     private final SchedulerService scheduleService;
     @GetMapping
-    public List<CoursePlan.PlannedCourse> getSchedule(@RequestParam Integer uid){
+    public List<ScheduleDraft.PlannedCourse> getSchedule(@RequestParam Integer uid){
         return scheduleService.getCoursePlan(uid);
     }
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public void addClass(@RequestBody buffRequest buffRequest){
+    public void addClass(@RequestBody ScheduleRequest buffRequest){
         System.out.println("hellooooo");
         System.out.println(buffRequest.getUid());
         scheduleService.addCourse(buffRequest);

@@ -1,8 +1,7 @@
 package com.SmartScheduler.Scheduler.service;
 
-import com.SmartScheduler.Scheduler.dto.CourseNodes;
 import com.SmartScheduler.Scheduler.dto.PreRequisites;
-import com.SmartScheduler.Scheduler.model.CoursePlan;
+import com.SmartScheduler.Scheduler.model.ScheduleDraft;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,10 +23,10 @@ public class OptimizerService {
     public List<List<String>> getOptimalSchedule(Integer uid) throws JsonProcessingException {
         // Load in User Schedule Draft Data
         System.out.println("Loading User Data");
-        List<CoursePlan.PlannedCourse> schedule = schedulerService.getCoursePlan(uid);
+        List<ScheduleDraft.PlannedCourse> schedule = schedulerService.getCoursePlan(uid);
         List<String> courses = new ArrayList<>();
         Map<String, Integer> userRequirements = new HashMap(); // fix coursename to id
-        for(CoursePlan.PlannedCourse plannedCourse : schedule){
+        for(ScheduleDraft.PlannedCourse plannedCourse : schedule){
             courses.add(plannedCourse.getCname());
             if(plannedCourse.getSemesterRequirement() != -1){
                 userRequirements.put(plannedCourse.getCname(), plannedCourse.getSemesterRequirement());
