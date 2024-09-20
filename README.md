@@ -4,3 +4,4 @@
 - Optimization algorithm in /Scheduler service at OptimizerController endpoint
 - Course Management/Database in /CourseCatalog
 - Will migrate to mysql soon, currently using mongodb for schedule db
+- Logging to be implemented, dont worry
