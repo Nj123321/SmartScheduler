@@ -8,6 +8,7 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="DiscoveryServer" />
+        <module name="ApiGatewayService" />
         <module name="CourseCatalog" />
         <module name="Scheduler" />
       </profile>
@@ -19,6 +20,7 @@
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="ApiGateway" options="-parameters" />
+      <module name="ApiGatewayService" options="-parameters" />
       <module name="CourseCatalog" options="-parameters" />
       <module name="DiscoveryServer" options="-parameters" />
       <module name="Scheduler" options="-parameters" />

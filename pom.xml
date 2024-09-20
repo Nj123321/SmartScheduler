@@ -19,6 +19,7 @@
         <module>CourseCatalog</module>
         <module>Scheduler</module>
         <module>DiscoveryServer</module>
+        <module>ApiGatewayService</module>
     </modules>
 
     <properties>
