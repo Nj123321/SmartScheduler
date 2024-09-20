@@ -1,9 +1,6 @@
 package com.SmartScheduler.CourseCatalog.controller;
 
-import com.SmartScheduler.CourseCatalog.dto.CourseListRequest;
-import com.SmartScheduler.CourseCatalog.dto.CourseRequest;
-import com.SmartScheduler.CourseCatalog.dto.PreReqWrapper;
-import com.SmartScheduler.CourseCatalog.dto.PreRequisites;
+import com.SmartScheduler.CourseCatalog.dto.*;
 import com.SmartScheduler.CourseCatalog.service.CatalogService;
 import com.SmartScheduler.CourseCatalog.service.CourseNotFoundException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -35,10 +32,9 @@ public class InventoryController {
      */
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public String getPreqs(@RequestParam List<Integer> listOfCourseIDs) throws JsonProcessingException, CourseNotFoundException {
-        ObjectMapper objectMapper = new ObjectMapper();
+    public PreReqDTO getPreqs(@RequestParam List<Integer> listOfCourseIDs) throws JsonProcessingException, CourseNotFoundException {
         List<List<PreRequisites>> testing = catalogService.getPreReqs(listOfCourseIDs);
-        return objectMapper.writeValueAsString(testing);
+        return new PreReqDTO(testing);
     }
 
     /**

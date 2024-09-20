@@ -1,5 +1,6 @@
 package com.SmartScheduler.Scheduler.service;
 
+import com.SmartScheduler.Scheduler.dto.PreReqDTO;
 import com.SmartScheduler.Scheduler.dto.PreRequisites;
 import com.SmartScheduler.Scheduler.model.ScheduleDraft;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -45,14 +46,13 @@ public class OptimizerService {
 
         // Get Class Prerequisites for Schedule
         System.out.println("fetching Prereqs");
-        String jsonBuffer = webClientBuilder.build().get()
-                .uri("http://localhost:65106/courses", //TODO discovery client
+        PreReqDTO jsonBuffer = webClientBuilder.build().get()
+                .uri("http://CourseCatalog/courses", //TODO discovery client
                         uriBuilder -> uriBuilder.queryParam("listOfCourseIDs", draftScheduleListCourseID).build())
                 .retrieve()
-                .bodyToMono(String.class)
+                .bodyToMono(PreReqDTO.class)
                 .block();
-        ObjectMapper objectMapper = new ObjectMapper();
-        List<List<PreRequisites>> inventoryResponseArray = objectMapper.readValue(jsonBuffer, new TypeReference<List<List<PreRequisites>>>(){});
+        List<List<PreRequisites>> inventoryResponseArray = jsonBuffer.getPrereqchain();
 
         //Prepare Caches for backtracking
         System.out.println("BackTracking prep");
