@@ -13,4 +13,9 @@ public class CourseNodes {
     String courseName;
     Integer difficulty;
     Integer semesterIndex = -1;
+
+    @Override
+    public String toString() {
+        return courseName;
+    }
 }
