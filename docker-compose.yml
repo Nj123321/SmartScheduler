@@ -2,22 +2,36 @@
 version: '3'
 services:
   ## MySQL Docker Compose Config
-  postgres-order:
-    container_name: postgres-order
-    image: postgres
-    environment:
-      POSTGRES_DB: order-service
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: passwordorder
-      PGDATA: /data/postgres
-    volumes:
-      - ./postgres-order:/data/postgres
-    expose:
-      - "5431"
-    ports:
-      - "5431:5431"
-    command: -p 5431
-    restart: unless-stopped
+#  postgres-order:
+#    container_name: postgres-order
+#    image: postgres
+#    environment:
+#      POSTGRES_DB: order-service
+#      POSTGRES_USER: admin
+#      POSTGRES_PASSWORD: passwordorder
+#      PGDATA: /data/postgres
+#    volumes:
+#      - ./postgres-order:/data/postgres
+#    expose:
+#      - "5431"
+#    ports:
+#      - "5431:5431"
+#    command: -p 5431
+#    restart: unless-stopped
+
+#  postgres-inventory:
+#    container_name: postgres-inventory
+#    image: postgres
+#    environment:
+#      POSTGRES_DB: inventory-service
+#      POSTGRES_USER: admin
+#      POSTGRES_PASSWORD: passwordinventory
+#      PGDATA: /data/postgres
+#    volumes:
+#      - ./postgres-inventory:/data/postgres
+#    ports:
+#      - "5432:5432"
+#    restart: unless-stopped
 
   ## Mongo Docker Compose Config
   mongo:
@@ -29,29 +43,19 @@ services:
     expose:
       - "27017"
     volumes:
-      - ./mongo-data
+      - ./mongo-data:/data/db
 
-  neo4j:
-    container_name: neo4j-prerequisites
-    image: neo4j
-    ports:
-      - "7474:7474"
-    expose:
-      - "7474"
+  ## Keycloak Config with Mysql database
+  keycloak-mysql:
+    container_name: keycloak-mysql
+    image: mariadb:latest
     volumes:
-
-
-#  ## Keycloak Config with Mysql database
-#  keycloak-mysql:
-#    container_name: keycloak-mysql
-#    image: mariadb:latest
-#    volumes:
-#      - ./mysql_keycloak_data:/var/lib/mysql
-#    environment:
-#      MYSQL_ROOT_PASSWORD: root
-#      MYSQL_DATABASE: keycloak
-#      MYSQL_USER: keycloak
-#      MYSQL_PASSWORD: password
+      - ./mysql_keycloak_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: keycloak
+      MYSQL_USER: keycloak
+      MYSQL_PASSWORD: password
 
   keycloak:
     container_name: keycloak
@@ -71,7 +75,7 @@ services:
       - ./keycloak-realms/:/opt/keycloak/data/import/
     depends_on:
       - keycloak-mysql
-
+#
 #  zookeeper:
 #    image: confluentinc/cp-zookeeper:7.0.1
 #    container_name: zookeeper
@@ -101,75 +105,75 @@ services:
 #    container_name: zipkin
 #    ports:
 #      - "9411:9411"
-
-  ## Eureka Server
-  discovery-server:
-    image: nathanjin123321/discoveryserver:latest
-    container_name: ss-discovery-server
-    pull_policy: always
-    ports:
-      - "8761:8761"
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-    depends_on:
-      - zipkin
-
-  api-gateway:
-    image: nathanjin123321/apigateway:latest
-    container_name: ss-api-gateway
-    pull_policy: always
-    ports:
-      - "8080:8080"
-    expose:
-      - "8080"
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY= TRACE
-    depends_on:
-      - zipkin
-      - discovery-server
-      - keycloak
-
-  ## Product-Service Docker Compose Config
-  product-service:
-    container_name: product-service
-    image: nathanjin123321/productservice:latest
-    pull_policy: always
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-    depends_on:
-      - mongo
-      - discovery-server
-      - api-gateway
-
-  ## Scheduler-Service Docker Compose Config
-  scheduler-service:
-    container_name: scheduler-service
-    image: nathanjin123321/schduler-service:latest
-    pull_policy: always
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-order:5431/order-service
-    depends_on:
-      - postgres-order
-      - broker
-      - zipkin
-      - discovery-server
-      - api-gateway
-
-  ## Course Catalog Service Docker Compose Config
-  inventory-service:
-    container_name: course-catalog
-    image: nathanjin123321/course-catalog:latest
-    pull_policy: always
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-inventory:5432/inventory-service
-    depends_on:
-      - postgres-inventory
-      - discovery-server
-      - api-gateway
-
+#
+#  ## Eureka Server
+#  discovery-server:
+#    image: nathanjin123321/discoveryserver:latest
+#    container_name: discovery-server
+#    pull_policy: always
+#    ports:
+#      - "8761:8761"
+#    environment:
+#      - SPRING_PROFILES_ACTIVE=docker
+#    depends_on:
+#      - zipkin
+#
+#  api-gateway:
+#    image: nathanjin123321/apigateway:latest
+#    container_name: api-gateway
+#    pull_policy: always
+#    ports:
+#      - "8181:8080"
+#    expose:
+#      - "8181"
+#    environment:
+#      - SPRING_PROFILES_ACTIVE=docker
+#      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY= TRACE
+#    depends_on:
+#      - zipkin
+#      - discovery-server
+#      - keycloak
+#
+#  ## Product-Service Docker Compose Config
+#  product-service:
+#    container_name: product-service
+#    image: nathanjin123321/productservice:latest
+#    pull_policy: always
+#    environment:
+#      - SPRING_PROFILES_ACTIVE=docker
+#    depends_on:
+#      - mongo
+#      - discovery-server
+#      - api-gateway
+#
+#  ## Order-Service Docker Compose Config
+#  order-service:
+#    container_name: order-service
+#    image: nathanjin123321/orderservice:latest
+#    pull_policy: always
+#    environment:
+#      - SPRING_PROFILES_ACTIVE=docker
+#      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-order:5431/order-service
+#    depends_on:
+#      - postgres-order
+#      - broker
+#      - zipkin
+#      - discovery-server
+#      - api-gateway
+#
+#  ## Inventory-Service Docker Compose Config
+#  inventory-service:
+#    container_name: inventory-service
+#    image: nathanjin123321/inventoryservice:latest
+#    pull_policy: always
+#    environment:
+#      - SPRING_PROFILES_ACTIVE=docker
+#      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-inventory:5432/inventory-service
+#    depends_on:
+#      - postgres-inventory
+#      - discovery-server
+#      - api-gateway
+#
 #  ## Notification-Service Docker Compose Config
 #  notification-service:
 #    container_name: notification-service
