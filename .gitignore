@@ -1,0 +1,4 @@
+mongo-data/*
+neo4j_db/*
+mysql_keycloak_data/*
+.idea/*
