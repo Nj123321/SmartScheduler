@@ -1,0 +1,16 @@
+com/SmartScheduler/CourseCatalog/CourseCatalogApplication.class
+com/SmartScheduler/CourseCatalog/repository/CourseRepository.class
+com/SmartScheduler/CourseCatalog/dto/PreRequisites$PreRequisitesBuilder.class
+com/SmartScheduler/CourseCatalog/dto/PreReqWrapper$PreReqWrapperBuilder.class
+com/SmartScheduler/CourseCatalog/controller/InventoryController.class
+com/SmartScheduler/CourseCatalog/dto/CourseListRequest.class
+com/SmartScheduler/CourseCatalog/dto/CourseListRequest$CourseListRequestBuilder.class
+com/SmartScheduler/CourseCatalog/dto/PreReqDTO.class
+com/SmartScheduler/CourseCatalog/service/CourseNotFoundException.class
+com/SmartScheduler/CourseCatalog/dto/PreRequisites.class
+com/SmartScheduler/CourseCatalog/dto/PreReqWrapper.class
+com/SmartScheduler/CourseCatalog/service/CatalogService.class
+com/SmartScheduler/CourseCatalog/dto/CourseRequest$CourseRequestBuilder.class
+com/SmartScheduler/CourseCatalog/dto/PreReqDTO$PreReqDTOBuilder.class
+com/SmartScheduler/CourseCatalog/model/Course.class
+com/SmartScheduler/CourseCatalog/dto/CourseRequest.class

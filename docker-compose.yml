@@ -45,6 +45,24 @@ services:
     volumes:
       - ./mongo-data:/data/db
 
+  neo4j:
+    container_name: neo4j
+    image: neo4j:latest
+    ports:
+      - 7474:7474
+      - 7687:7687
+    environment:
+      - NEO4J_AUTH=neo4j/newpassword
+      - NEO4J_apoc_export_file_enabled=true
+      - NEO4J_apoc_import_file_enabled=true
+      - NEO4J_apoc_import_file_use__neo4j__config=true
+      - NEO4J_PLUGINS=["apoc", "graph-data-science"]
+    volumes:
+      - ./neo4j_db/data:/data
+      - ./neo4j_db/logs:/logs
+      - ./neo4j_db/import:/var/lib/neo4j/import
+      - ./neo4j_db/plugins:/plugins
+
   ## Keycloak Config with Mysql database
   keycloak-mysql:
     container_name: keycloak-mysql
@@ -105,47 +123,48 @@ services:
 #    container_name: zipkin
 #    ports:
 #      - "9411:9411"
+  ## Eureka Server
 #
-#  ## Eureka Server
-#  discovery-server:
-#    image: nathanjin123321/discoveryserver:latest
-#    container_name: discovery-server
-#    pull_policy: always
-#    ports:
-#      - "8761:8761"
-#    environment:
-#      - SPRING_PROFILES_ACTIVE=docker
+  discovery-server:
+    build: ./DiscoveryServer
+    container_name: discovery-server
+    ports:
+      - "8761:8761"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
 #    depends_on:
 #      - zipkin
-#
-#  api-gateway:
-#    image: nathanjin123321/apigateway:latest
-#    container_name: api-gateway
-#    pull_policy: always
-#    ports:
-#      - "8181:8080"
-#    expose:
-#      - "8181"
-#    environment:
-#      - SPRING_PROFILES_ACTIVE=docker
+
+  api-gateway:
+    build: ./ApiGatewayService
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    expose:
+      - "8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY= TRACE
-#    depends_on:
+    depends_on:
 #      - zipkin
-#      - discovery-server
-#      - keycloak
-#
-#  ## Product-Service Docker Compose Config
-#  product-service:
-#    container_name: product-service
-#    image: nathanjin123321/productservice:latest
-#    pull_policy: always
-#    environment:
-#      - SPRING_PROFILES_ACTIVE=docker
-#    depends_on:
-#      - mongo
-#      - discovery-server
-#      - api-gateway
-#
+      - discovery-server
+      - keycloak
+
+  ## Product-Service Docker Compose Config
+  scheduler:
+    container_name: scheduler-service
+    build: ./Scheduler
+    ports:
+      - "6453:6453"
+    expose:
+      - "6453"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - mongo
+      - discovery-server
+      - api-gateway
+
 #  ## Order-Service Docker Compose Config
 #  order-service:
 #    container_name: order-service
@@ -160,19 +179,18 @@ services:
 #      - zipkin
 #      - discovery-server
 #      - api-gateway
-#
-#  ## Inventory-Service Docker Compose Config
-#  inventory-service:
-#    container_name: inventory-service
-#    image: nathanjin123321/inventoryservice:latest
-#    pull_policy: always
-#    environment:
-#      - SPRING_PROFILES_ACTIVE=docker
+
+  ## Inventory-Service Docker Compose Config
+  coursecatalog:
+    container_name: course-catalog
+    build: ./CourseCatalog
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
 #      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-inventory:5432/inventory-service
-#    depends_on:
+    depends_on:
 #      - postgres-inventory
-#      - discovery-server
-#      - api-gateway
+      - discovery-server
+      - api-gateway
 #
 #  ## Notification-Service Docker Compose Config
 #  notification-service:
